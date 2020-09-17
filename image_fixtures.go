@@ -211,15 +211,14 @@ func hasImage(t *testing.T, imageName string) bool {
 	cmd := exec.Command("docker", "image", "inspect", imageName)
 	cmd.Env = os.Environ()
 	err := cmd.Run()
-	if err != nil {
-		return false
-	}
-	return true
+	return err == nil
 }
 
 func buildImage(t *testing.T, contextDir, name, tag string) error {
 	t.Helper()
-	cmd := exec.Command("docker", "build", "-t", name+":"+tag, "-t", name+":latest", ".")
+	fullTag := fmt.Sprintf("%s:%s", name, tag)
+	latestTag := fmt.Sprintf("%s:latest", name)
+	cmd := exec.Command("docker", "build", "-t", fullTag, "-t", latestTag, ".")
 	cmd.Env = os.Environ()
 	cmd.Dir = contextDir
 	cmd.Stdout = os.Stdout
