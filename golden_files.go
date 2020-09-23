@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"strings"
 	"testing"
 
 	"github.com/anchore/stereoscope/pkg/image"
@@ -61,8 +62,10 @@ func copyFile(t *testing.T, src, dst string) {
 
 func GetGoldenFilePath(t *testing.T) string {
 	t.Helper()
-
-	return path.Join(goldenFileDirPath, t.Name()+goldenFileExt)
+	// When using table-driven-tests, the `t.Name()` results in a string with slashes
+	// which makes it impossible to reference in a filesystem, producing a "No such file or directory"
+	filename := strings.ReplaceAll(t.Name(), "/", "_")
+	return path.Join(goldenFileDirPath, filename+goldenFileExt)
 }
 
 func UpdateGoldenFileContents(t *testing.T, contents []byte) {
