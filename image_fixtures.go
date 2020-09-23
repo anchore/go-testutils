@@ -68,7 +68,8 @@ func skopeoCopyDockerArchiveToPath(t *testing.T, dockerArchivePath, destination 
 		t.Fatalf("cannot find skopeo executable")
 	}
 
-	cmd := exec.Command("skopeo", "copy", fmt.Sprintf("docker-archive:%s", dockerArchivePath), destination)
+	archive := fmt.Sprintf("docker-archive:%s", dockerArchivePath)
+	cmd := exec.Command("skopeo", "copy", archive, destination)
 	cmd.Env = os.Environ()
 
 	cmd.Stdout = os.Stdout
