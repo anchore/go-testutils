@@ -1,71 +1,29 @@
 package testutils
 
 import (
-	"io"
 	"io/ioutil"
 	"os"
 	"path"
+	"path/filepath"
 	"strings"
 	"testing"
 
-	"github.com/anchore/stereoscope/pkg/image"
 	"github.com/logrusorgru/aurora"
 )
 
 const (
-	goldenFileDirName = "snapshot"
-	goldenFileExt     = ".golden"
+	TestFixturesDir   = "test-fixtures"
+	GoldenFileDirName = "snapshot"
+	GoldenFileExt     = ".golden"
+	GoldenFileDirPath = TestFixturesDir + string(filepath.Separator) + GoldenFileDirName
 )
-
-var goldenFileDirPath = path.Join(testFixturesDir, goldenFileDirName)
-
-func GetGoldenFixtureImage(t *testing.T, name string) *image.Image {
-	t.Helper()
-
-	imageName, _ := getFixtureImageInfo(t, name)
-	tarFileName := imageName + goldenFileExt
-	tarPath := getFixtureImageTarPath(t, name, goldenFileDirPath, tarFileName)
-	return getFixtureImageFromTar(t, tarPath)
-}
-
-func UpdateGoldenFixtureImage(t *testing.T, name string) {
-	t.Helper()
-
-	t.Log(aurora.Reverse(aurora.Red("!!! UPDATING GOLDEN FIXTURE IMAGE !!!")), name)
-
-	imageName, _ := getFixtureImageInfo(t, name)
-	goldenTarFilePath := path.Join(goldenFileDirPath, imageName+goldenFileExt)
-	tarPath := GetFixtureImageTarPath(t, name)
-	copyFile(t, tarPath, goldenTarFilePath)
-}
-
-func copyFile(t *testing.T, src, dst string) {
-	t.Helper()
-
-	in, err := os.Open(src)
-	if err != nil {
-		t.Fatalf("could not open src (%s): %+v", src, err)
-	}
-	defer in.Close()
-
-	out, err := os.Create(dst)
-	if err != nil {
-		t.Fatalf("could not open dst (%s): %+v", dst, err)
-	}
-	defer out.Close()
-
-	_, err = io.Copy(out, in)
-	if err != nil {
-		t.Fatalf("could not copy file (%s -> %s): %+v", src, dst, err)
-	}
-}
 
 func GetGoldenFilePath(t *testing.T) string {
 	t.Helper()
 	// When using table-driven-tests, the `t.Name()` results in a string with slashes
 	// which makes it impossible to reference in a filesystem, producing a "No such file or directory"
 	filename := strings.ReplaceAll(t.Name(), "/", "_")
-	return path.Join(goldenFileDirPath, filename+goldenFileExt)
+	return path.Join(GoldenFileDirPath, filename+GoldenFileExt)
 }
 
 func UpdateGoldenFileContents(t *testing.T, contents []byte) {
@@ -97,4 +55,10 @@ func GetGoldenFileContents(t *testing.T) []byte {
 		t.Fatalf("could not read file (%s): %+v", goldenPath, err)
 	}
 	return bytes
+}
+
+func fileOrDirExists(t *testing.T, filename string) bool {
+	t.Helper()
+	_, err := os.Stat(filename)
+	return !os.IsNotExist(err)
 }
